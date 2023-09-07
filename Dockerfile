@@ -3,6 +3,7 @@ FROM debian:stable-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DISPLAY=:99
+ENV DEBUG_PORT=19222
 
 # Install dependencies
 RUN apt update && apt install -y \
@@ -18,7 +19,8 @@ RUN apt update && apt install -y \
     libgtk-3-0 \
     libgbm1 \
     libasound2 \
-    squashfs-tools
+    squashfs-tools \
+    socat
 
 # Install Authy
 RUN mkdir -p /root/authy
@@ -35,8 +37,12 @@ RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
 WORKDIR /root
 
-COPY ./entrypoint.sh entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Add entrypoint
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-CMD ["authy", "--no-sandbox", "--disable-gpu"]
+# Add shell script
+COPY ./shell.sh /usr/local/bin/shell.sh
+RUN chmod +x /usr/local/bin/shell.sh
+CMD ["/usr/local/bin/shell.sh"]
