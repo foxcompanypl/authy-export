@@ -1,9 +1,10 @@
 
-FROM debian:stable-slim
+FROM node:lts-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DISPLAY=:99
 ENV DEBUG_PORT=19222
+ENV DEBUG=0
 
 # Install dependencies
 RUN apt update && apt install -y \
@@ -32,6 +33,12 @@ RUN ln -s /root/authy/authy /usr/bin/authy
 
 # Cleanup
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/* 
+
+# Copy node app
+RUN mkdir -p /root/node
+WORKDIR /root/node
+COPY ./node ./
+# RUN npm ci && npm run build
 
 WORKDIR /root
 

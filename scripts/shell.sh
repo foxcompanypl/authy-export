@@ -1,6 +1,8 @@
 #!/bin/bash
 
-socat TCP-LISTEN:5858,fork TCP:localhost:${DEBUG_PORT} >/dev/null 2>&1 &
+if [[ "$DEBUG" == "1" ]]; then
+    socat TCP-LISTEN:5858,fork TCP:localhost:${DEBUG_PORT} >/dev/null 2>&1 &
+fi
 
 authy \
     --no-sandbox \
