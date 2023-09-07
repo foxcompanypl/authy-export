@@ -6,6 +6,7 @@ const config = {
   fields: {
     countryCode: process.env.COUNTRY_CODE,
     phoneNumber: process.env.PHONE_NUMBER,
+    backupPassword: process.env.BACKUP_PASSWORD,
   },
 };
 
@@ -66,6 +67,26 @@ async function handleLoginScreen(client: CDP.Client) {
   });
 }
 
+async function handleEncryption(client: CDP.Client) {
+  const { result: isDecrypted } = await client.Runtime.evaluate({
+    expression: `appManager.getModel().every(i => i.decryptedSeed || i.secretSeed)`,
+  });
+  if (isDecrypted.type === "boolean" && isDecrypted.value === true) {
+    return;
+  }
+  const { result } = await client.Runtime.evaluate({
+    expression: `
+        new Promise((resolve,reject) => {
+            appManager.decryptApps("${config.fields.backupPassword}", () => resolve(true), () => resolve(false));
+        });
+      `,
+    awaitPromise: true,
+  });
+  if (result.type === "boolean" && result.value === false) {
+    throw new Error("Can't decrypt apps. Check your password.");
+  }
+}
+
 async function run() {
   const client = await CDP({
     host: "127.0.0.1",
@@ -79,6 +100,8 @@ async function run() {
   );
   console.log("Waiting for app to load");
   await waitForApp(client, 60_000);
+  console.log("Check if account is encrypted");
+  await handleEncryption(client);
   await client.close();
 }
 
