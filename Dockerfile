@@ -38,7 +38,7 @@ RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 RUN mkdir -p /root/node
 WORKDIR /root/node
 COPY ./node ./
-# RUN npm ci && npm run build
+RUN npm ci && npm run build
 
 WORKDIR /root
 
