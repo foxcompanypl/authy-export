@@ -17,13 +17,17 @@ async function sleep(time = 1000) {
   });
 }
 
-async function waitForApp(client: CDP.Client) {
+async function waitForApp(client: CDP.Client, timeout = 10_000) {
+  const start = Date.now();
   while (true) {
     const { result } = await client.Runtime.evaluate({
       expression: `window.appManager && window.appManager.getModel().length > 0`,
     });
     if (result.type === "boolean" && result.value === true) {
       break;
+    }
+    if (Date.now() - start > timeout) {
+      throw new Error("Timeout");
     }
     await sleep(1000);
   }
@@ -74,8 +78,12 @@ async function run() {
     "Waiting for login confirmation. If you don't see the prompt, please check your phone."
   );
   console.log("Waiting for app to load");
-  await waitForApp(client);
+  await waitForApp(client, 60_000);
   await client.close();
 }
 
-run();
+try {
+  run();
+} catch (e) {
+  console.error(e);
+}
