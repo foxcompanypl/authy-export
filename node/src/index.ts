@@ -1,4 +1,5 @@
 import CDP from "chrome-remote-interface";
+import fs from "fs";
 
 const config = {
   port: parseInt(process.env.DEBUG_PORT || "9222"),
@@ -87,6 +88,43 @@ async function handleEncryption(client: CDP.Client) {
   }
 }
 
+async function handleExport(client: CDP.Client) {
+  // Based on https://github.com/authier-pm/authy-desktop-export
+  const exportRes = await client.Runtime.evaluate({
+    expression: `
+            const hex_to_b32 = (hex) => {
+                let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+                let bytes = [];
+                for (let i = 0; i < hex.length; i += 2) {
+                    bytes.push(parseInt(hex.substr(i, 2), 16));
+                }
+                let bits = 0;
+                let value = 0;
+                let output = "";
+                for (let i = 0; i < bytes.length; i++) {
+                    value = (value << 8) | bytes[i];
+                    bits += 8;
+                    while (bits >= 5) {
+                        output += alphabet[(value >>> (bits - 5)) & 31];
+                        bits -= 5;
+                    }
+                }
+                if (bits > 0) {
+                    output += alphabet[(value << (5 - bits)) & 31];
+                }
+                return output;
+            };
+            JSON.stringify(appManager.getModel().map(function(i) {
+                const secret = (i.markedForDeletion === false ? i.decryptedSeed : hex_to_b32(i.secretSeed));
+                return {
+                    ...i, 
+                    secret
+                };
+            }))`,
+  });
+  fs.writeFileSync(config.exportFile, exportRes.result.value);
+}
+
 async function run() {
   const client = await CDP({
     host: "127.0.0.1",
@@ -102,6 +140,8 @@ async function run() {
   await waitForApp(client, 60_000);
   console.log("Check if account is encrypted");
   await handleEncryption(client);
+  console.log("Export accounts");
+  await handleExport(client);
   await client.close();
 }
 
