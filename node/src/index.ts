@@ -118,7 +118,8 @@ async function handleExport(client: CDP.Client) {
                 const secret = (i.markedForDeletion === false ? i.decryptedSeed : hex_to_b32(i.secretSeed));
                 return {
                     ...i, 
-                    secret
+                    secret,
+                    url: \`otpauth://totp/\${encodeURIComponent(i.name)}?secret=\${secret}\`
                 };
             }))`,
   });
