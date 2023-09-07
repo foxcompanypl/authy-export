@@ -27,9 +27,7 @@ RUN mkdir -p /root/authy
 WORKDIR /root/authy
 RUN wget https://api.snapcraft.io/api/v1/snaps/download/H8ZpNgIoPyvmkgxOWw5MSzsXK1wRZiHn_18.snap && \
     unsquashfs -q -f -d . *.snap && \
-    rm -r command.sh data-dir desktop-common.sh desktop-gnome-specific.sh desktop-init.sh gnome-platform lib meta/snap.yaml usr *.snap && \
-    mkdir -p ~/.local/share/applications && \
-    install -Dm755 meta/gui/authy.desktop ~/.local/share/applications/authy.desktop
+    rm -r command.sh data-dir desktop-common.sh desktop-gnome-specific.sh desktop-init.sh gnome-platform lib meta/snap.yaml usr *.snap
 RUN ln -s /root/authy/authy /usr/bin/authy
 
 # Cleanup
