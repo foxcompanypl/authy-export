@@ -38,11 +38,11 @@ RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 WORKDIR /root
 
 # Add entrypoint
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Add shell script
-COPY ./shell.sh /usr/local/bin/shell.sh
+COPY ./scripts/shell.sh /usr/local/bin/shell.sh
 RUN chmod +x /usr/local/bin/shell.sh
 CMD ["/usr/local/bin/shell.sh"]
